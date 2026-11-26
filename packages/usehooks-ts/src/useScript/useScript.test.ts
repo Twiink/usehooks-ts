@@ -3,6 +3,33 @@ import { act, cleanup, renderHook } from '@testing-library/react'
 import { useScript } from './useScript'
 
 describe('useScript', () => {
+  it('should load and reuse a script whose URL contains quotes', () => {
+    const src = 'https://example.com/widget.js?options={"theme":"dark"}'
+    const { result } = renderHook(() =>
+      useScript(src, { removeOnUnmount: true }),
+    )
+    const script = Array.from(document.scripts).find(
+      node => node.getAttribute('src') === src,
+    )
+
+    expect(script).toBeDefined()
+    expect(result.current).toBe('loading')
+
+    const { result: secondResult } = renderHook(() => useScript(src))
+    expect(
+      Array.from(document.scripts).filter(
+        node => node.getAttribute('src') === src,
+      ),
+    ).toHaveLength(1)
+
+    act(() => {
+      script?.dispatchEvent(new Event('load'))
+    })
+
+    expect(result.current).toBe('ready')
+    expect(secondResult.current).toBe('ready')
+  })
+
   it('should handle script loading error', () => {
     const src = 'https://example.com/myscript.js'
 

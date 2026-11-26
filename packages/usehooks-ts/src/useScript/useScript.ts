@@ -27,9 +27,10 @@ const cachedScriptStatuses = new Map<string, UseScriptStatus | undefined>()
  * ```
  */
 function getScriptNode(src: string) {
-  const node: HTMLScriptElement | null = document.querySelector(
-    `script[src="${src}"]`,
-  )
+  const node =
+    Array.from(document.scripts).find(
+      script => script.getAttribute('src') === src,
+    ) ?? null
   const status = node?.getAttribute('data-status') as
     | UseScriptStatus
     | undefined
